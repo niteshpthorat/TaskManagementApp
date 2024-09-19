@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { Task } from '../models/Task';
 import { validateTask } from '../utils/validations';
 
+
 interface TaskFormProps {
     dispatch: React.Dispatch<any>;
+    categories: string[];
 }
 
-const TaskForm: React.FC<TaskFormProps> = ({ dispatch }) => {
+const TaskForm: React.FC<TaskFormProps> = ({ dispatch, categories}) => {
     const [taskDetails, setTaskDetails] = useState({
         description: '',
         dueDate: '',
@@ -72,13 +74,13 @@ const TaskForm: React.FC<TaskFormProps> = ({ dispatch }) => {
                     name="category"
                     value={taskDetails.category}
                     onChange={handleInputChange}
-                    style={{ width: '100%', padding: '8px'}}
+                    style={{ width: '100%', padding: '8px' }}
                     required
                 >
                     <option value="" disabled>Select a category</option>
-                    <option value="Work">Work</option>
-                    <option value="Personal">Personal</option>
-                    <option value="Urgent">Urgent</option>
+                    {categories.map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                    ))}
                 </select>
             </div>
 

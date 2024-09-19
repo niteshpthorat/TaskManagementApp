@@ -11,16 +11,18 @@ enum Filter {
 interface TaskListProps {
     tasks: Task[];               
     dispatch: React.Dispatch<any>; 
+    categories: string[];
 }
 
-const TaskList: React.FC<TaskListProps> = ({ tasks, dispatch }) => {
+const TaskList: React.FC<TaskListProps> = ({ tasks, dispatch ,categories}) => {
     
     const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
     const [updatedDescription, setUpdatedDescription] = useState('');
     const [updatedDueDate, setUpdatedDueDate] = useState('');
     const [updatedCategory, setUpdatedCategory] = useState('');
-
+    
     const [filter, setFilter] = useState<Filter>(Filter.All);
+    const [categoryFilter, setCategoryFilter] = useState<string>('All');
 
     const renderTask = (task: Task) => (
         <li key={task.id}>
@@ -40,9 +42,9 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, dispatch }) => {
                         value={updatedCategory}
                         onChange={(e) => setUpdatedCategory(e.target.value)}
                     >
-                        <option value="Work">Work</option>
-                        <option value="Personal">Personal</option>
-                        <option value="Urgent">Urgent</option>
+                       {categories.map(category => (
+                        <option key={category} value={category}>{category}</option>
+                                    ))}
                     </select>
                     <button onClick={() => handleEditSave(task.id)}>Save</button>
                     <button onClick={() => setEditingTaskId(null)}>Cancel</button>
@@ -109,9 +111,11 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, dispatch }) => {
     };
 
     const filteredTasks = tasks.filter(task => {
-        if (filter === 'complete') return task.isComplete;
-        if (filter === 'incomplete') return !task.isComplete;
-        return true; 
+        const completionFilter =
+            filter === Filter.All || (filter === Filter.Complete && task.isComplete) || (filter === Filter.Incomplete && !task.isComplete);
+        const checkCategoryFilter = categoryFilter === 'All' || task.category === categoryFilter;
+
+        return completionFilter && checkCategoryFilter;
     });
 
     const handleAddSubtask = (taskId: string, description: string) => {
@@ -156,17 +160,25 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, dispatch }) => {
         }
     };
 
-
     return (
 
         <div>
             <h2>Task List</h2>
             <div>
-                <label>Filter tasks: </label>
+                <label>Filter tasks by Status: </label>
                 <select value={filter} onChange={(e) => setFilter(e.target.value as Filter)}>
                     <option value={Filter.All}>All</option>
                     <option value={Filter.Complete}>Complete</option>
                     <option value={Filter.Incomplete}>Incomplete</option>
+                </select>
+            </div>
+            <div>
+                <label>Filter tasks by category: </label>
+                <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
+                    <option value="All">All</option>
+                    {categories.map(category => (
+                        <option key={category} value={category}>{category}</option>
+                    ))}
                 </select>
             </div>
             {filteredTasks.length === 0 ? (

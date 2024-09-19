@@ -1,8 +1,9 @@
-import React, { useReducer, useEffect } from 'react';
+import React, { useReducer, useEffect , useState} from 'react';
 import TaskList from './components/TaskList';
 import TaskForm from './components/TaskForm';
 import { Task } from './models/Task';
 import useLocalStorage from './hooks/useLocalStorage';
+import CategoryManager from './components/CategoryManager';
 
 // Defining as empty array for intital state
 const initialState: Task[] = [];
@@ -30,16 +31,43 @@ const App: React.FC = () => {
     // For managing task stage
     const [state, dispatch] = useReducer(reducer, storedTasks);
 
+    const [categories, setCategories] = useState<string[]>(['Work', 'Personal', 'Urgent']); // Predefined categories
+
+    const handleAddCategory = (category: string) => {
+      setCategories((prev) => [...prev, category]);
+    };
+
+    const handleEditCategory = (oldCategory: string, newCategory: string) => {
+        setCategories((prev) => 
+            prev.map(category => (category === oldCategory ? newCategory : category))
+        );
+    };
+
+    const handleDeleteCategory = (category: string) => {
+        setCategories((prev) => prev.filter(cat => cat !== category));
+    };
+
     useEffect(() => {
-        setStoredTasks(state);
+      setStoredTasks(state);
     }, [state, setStoredTasks]);
+
 
     return (
         <div className="App">
             <h1>Task Management App</h1>
-            <TaskForm dispatch={dispatch} />
+            <CategoryManager
+                categories={categories}
+                onAddCategory={handleAddCategory}
+                onEditCategory={handleEditCategory}
+                onDeleteCategory={handleDeleteCategory}
+            />
+            <TaskForm 
+              dispatch={dispatch }
+              categories={categories}
+             />
             
-            <TaskList tasks={state} dispatch={dispatch} />
+            <TaskList tasks={state} dispatch={dispatch}
+              categories={categories} />
         </div>
     );
 };

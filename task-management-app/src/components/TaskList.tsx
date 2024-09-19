@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Task } from '../models/Task';
+import SubtaskList from './SubtaskList';
 
 enum Filter {
     All = 'all',
@@ -48,13 +49,20 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, dispatch }) => {
                 </div>
             ) : (
                 <div>
-                    {task.description} : {task.isComplete ? 'Complete' : 'Incomplete'}
-                    - Due: {task.dueDate.toLocaleDateString()} - Category : {task.category}
+                     <span>{task.description} : {task.isComplete ? 'Complete' : 'Incomplete'}</span>
+                     <span>- Due: {task.dueDate.toLocaleDateString()} - Category : {task.category}</span>
                     <button onClick={() => handleEditStart(task)}>Edit</button>
                     <button onClick={() => handleDelete(task.id)}>Delete</button>
                     <button onClick={() => handleCompleteIncompleteTask(task.id)}>
                         {task.isComplete ? 'Mark Incomplete' : 'Mark Complete'}
                     </button>
+
+                    <SubtaskList
+                        task={task}
+                        onAddSubtask={handleAddSubtask}
+                        onDeleteSubtask={handleDeleteSubtask}
+                        onChangeSubtask={handleChangeSubtask}
+                    />
                 </div>
             )}
         </li>
@@ -72,20 +80,32 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, dispatch }) => {
     };
 
     const handleEditSave = (taskId: string) => {
-        const updatedTask: Task = {
-            id: taskId,
-            description: updatedDescription,
-            dueDate: new Date(updatedDueDate),
-            category: updatedCategory,
-            subtasks: [], // Will update once the subtasks part is added
-            isComplete: false, 
-        };
-        dispatch({ type: 'EDIT_TASK', payload: updatedTask });
-        setEditingTaskId(null); 
+        const taskToUpdate = tasks.find(task => task.id === taskId);
+        if (taskToUpdate) {
+            const updatedTask: Task = {
+                id: taskId,
+                description: updatedDescription,
+                dueDate: new Date(updatedDueDate),
+                category: updatedCategory || '',
+                subtasks: taskToUpdate.subtasks, // Retain existing subtasks
+                isComplete: taskToUpdate.isComplete, // Retain the current completion status
+            };
+            dispatch({ type: 'EDIT_TASK', payload: updatedTask });
+            setEditingTaskId(null);
+        }
     };
 
     const handleCompleteIncompleteTask = (taskId: string) => {
-        dispatch({ type: 'CHANGE_TASK', payload: taskId });
+        const taskToUpdate = tasks.find(task => task.id === taskId);
+        if (taskToUpdate) {
+            // Check if all subtasks are complete
+            const allSubtasksComplete = taskToUpdate.subtasks.every(subtask => subtask.isComplete);
+            const updatedTaskData = {
+                ...taskToUpdate,
+                isComplete: allSubtasksComplete, // Set task complete if all subtasks are complete
+            };
+            dispatch({ type: 'EDIT_TASK', payload: updatedTaskData });
+        }
     };
 
     const filteredTasks = tasks.filter(task => {
@@ -93,6 +113,48 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, dispatch }) => {
         if (filter === 'incomplete') return !task.isComplete;
         return true; 
     });
+
+    const handleAddSubtask = (taskId: string, description: string) => {
+        const newSubtask = {
+            id: new Date().toISOString(),
+            description,
+            isComplete: false,
+        };
+        const taskToUpdate = tasks.find(task => task.id === taskId);
+        if (taskToUpdate) {
+            const updatedTaskData = {
+                ...taskToUpdate,
+                subtasks: [...taskToUpdate.subtasks, newSubtask],
+            };
+            dispatch({ type: 'EDIT_TASK', payload: updatedTaskData });
+        }
+    };
+
+    const handleDeleteSubtask = (taskId: string, subtaskId: string) => {
+        const taskToUpdate = tasks.find(task => task.id === taskId);
+        if (taskToUpdate) {
+            const updatedSubtasks = taskToUpdate.subtasks.filter(subtask => subtask.id !== subtaskId);
+            const updatedTaskData = {
+                ...taskToUpdate,
+                subtasks: updatedSubtasks,
+            };
+            dispatch({ type: 'EDIT_TASK', payload: updatedTaskData });
+        }
+    };
+
+    const handleChangeSubtask = (taskId: string, subtaskId: string) => {
+        const taskToUpdate = tasks.find(task => task.id === taskId);
+        if (taskToUpdate) {
+            const updatedSubtasks = taskToUpdate.subtasks.map(subtask => 
+                subtask.id === subtaskId ? { ...subtask, isComplete: !subtask.isComplete } : subtask
+            );
+            const updatedTaskData = {
+                ...taskToUpdate,
+                subtasks: updatedSubtasks,
+            };
+            dispatch({ type: 'EDIT_TASK', payload: updatedTaskData });
+        }
+    };
 
 
     return (

@@ -16,6 +16,8 @@ const reducer = (state: Task[], action: any): Task[] => {
           return state.map(task => task.id === action.payload.id ? action.payload : task);
       case 'DELETE_TASK':
           return state.filter(task => task.id !== action.payload);
+      case 'CHANGE_TASK':
+          return state.map(task => task.id === action.payload ? { ...task, isComplete: !task.isComplete } : task);
       default:
           return state;
     }

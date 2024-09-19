@@ -4,17 +4,21 @@ import TaskForm from './components/TaskForm';
 import { Task } from './models/Task';
 import useLocalStorage from './hooks/useLocalStorage';
 
-// Define the initial state as an empty array of tasks
+// Defining as empty array for intital state
 const initialState: Task[] = [];
 
-type Action = { type: 'ADD_TASK'; payload: Task };
-
 // Define the reducer function to manage task state
-const reducer = (state: Task[], action: Action): Task[] => {
-    if (action.type === 'ADD_TASK') {
-        return [...state, action.payload];
+const reducer = (state: Task[], action: any): Task[] => {
+    switch (action.type) {
+      case 'ADD_TASK':
+          return [...state, action.payload];
+      case 'EDIT_TASK':
+          return state.map(task => task.id === action.payload.id ? action.payload : task);
+      case 'DELETE_TASK':
+          return state.filter(task => task.id !== action.payload);
+      default:
+          return state;
     }
-    return state; 
 };
 
 const App: React.FC = () => {

@@ -1,10 +1,40 @@
-# Getting Started with Create React App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Task Management App
 
-## Available Scripts
+This Task Management App is designed to help users efficiently manage their tasks with features for adding, editing, deleting, and highlighting tasks based on their due dates.
 
-In the project directory, you can run:
+## Features
+
+- **Add Tasks**: Users can add new tasks with descriptions, due dates, and categories.
+- **Edit Tasks**: Existing tasks can be modified.
+- **Delete Tasks**: Users can remove tasks they no longer need.
+- **Task Highlighting**: Tasks due today or overdue are highlighted with different colors.
+- **Notifications**: Browser notifications remind users of tasks due within the next 24 hours.
+
+## Getting Started
+
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
+
+### Prerequisites
+
+You need to have the following software installed on your system:
+
+- [Node.js](https://nodejs.org/en/) (which comes with [npm](http://npmjs.com/))
+
+### Setup
+
+1. **Clone the repository**
+
+   ```bash
+   git clone https://github.com/yourusername/task-management-app.git
+   cd task-management-app
+### `npm run build`
+
+Builds the app for production to the `build` folder.\
+It correctly bundles React in production mode and optimizes the build for the best performance.
+
+The build is minified and the filenames include the hashes.\
+Your app is ready to be deployed!
 
 ### `npm start`
 
@@ -14,18 +44,7 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 The page will reload if you make edits.\
 You will also see any lint errors in the console.
 
-### `npm test`
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
 
 See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 

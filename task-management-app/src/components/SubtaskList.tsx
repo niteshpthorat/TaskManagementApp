@@ -1,5 +1,15 @@
 import React, { useState } from 'react';
 import { Task, Subtask } from '../models/Task';
+import {
+    Button,
+    TextField,
+    Typography,
+    List,
+    ListItem,
+    ListItemText,
+    ListItemSecondaryAction,
+    Box,
+} from '@mui/material';
 
 interface SubtaskListProps {
     task: Task;
@@ -24,33 +34,42 @@ const SubtaskList: React.FC<SubtaskListProps> = ({ task, onAddSubtask, onDeleteS
         }
     };
 
-    const renderSubtask = (subtask: Subtask) => (
-        <li key={subtask.id}>
-            <span>
-                <span>Description: {subtask.description} - </span>
-                <span>Status: {subtask.isComplete ? 'Complete' : 'Incomplete'}</span>
-            </span>
-            <button onClick={() => onChangeSubtask(task.id, subtask.id)}>
-                {subtask.isComplete ? 'Mark Incomplete' : 'Mark Complete'}
-            </button>
-            <button onClick={() => onDeleteSubtask(task.id, subtask.id)}>Delete</button>
-        </li>
-    );
-
     return (
         <div>
-            <h4>Subtasks</h4>
-            <input
-                type="text"
+            <List>
+                {task.subtasks.map((subtask: Subtask) => (
+                    <ListItem key={subtask.id}>
+                        <ListItemText
+                            primary={subtask.description}
+                            secondary={`Status: ${subtask.isComplete ? 'Complete' : 'Incomplete'}`}
+                        />
+                        <ListItemSecondaryAction>
+                            <Button
+                                variant="outlined"
+                                onClick={() => onChangeSubtask(task.id, subtask.id)}
+                            >
+                                {subtask.isComplete ? 'Mark Incomplete' : 'Mark Complete'}
+                            </Button>
+                            <Button
+                                variant="outlined"
+                                color="secondary"
+                                onClick={() => onDeleteSubtask(task.id, subtask.id)}
+                                sx={{ marginLeft: '10px' }}
+                            >
+                                Delete
+                            </Button>
+                        </ListItemSecondaryAction>
+                    </ListItem>
+                ))}
+            </List>
+            <TextField
+                variant="outlined"
                 placeholder="Add a subtask"
                 value={newSubtask}
                 onChange={(e) => setNewSubtask(e.target.value)}
                 onKeyDown={handleKeyDown}
+                sx={{ marginBottom: '10px' }}
             />
-            <button onClick={handleAddSubtask}>Add Subtask</button>
-            <ul>
-                {task.subtasks.map(renderSubtask)}
-            </ul>
         </div>
     );
 };

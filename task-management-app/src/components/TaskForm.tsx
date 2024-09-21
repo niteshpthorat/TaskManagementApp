@@ -1,21 +1,36 @@
 import React, { useState } from 'react';
 import { Task } from '../models/Task';
 import { validateTask } from '../utils/validations';
-
+import {
+    Button,
+    TextField,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
+    Typography,
+    styled
+} from '@mui/material';
+import { SelectChangeEvent } from '@mui/material/Select';
 
 interface TaskFormProps {
     dispatch: React.Dispatch<any>;
     categories: string[];
 }
 
-const TaskForm: React.FC<TaskFormProps> = ({ dispatch, categories}) => {
+const TaskForm: React.FC<TaskFormProps> = ({ dispatch, categories }) => {
     const [taskDetails, setTaskDetails] = useState({
         description: '',
         dueDate: '',
         category: '',
     });
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setTaskDetails((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const handleSelectChange = (e: SelectChangeEvent<string>) => {
         const { name, value } = e.target;
         setTaskDetails((prev) => ({ ...prev, [name]: value }));
     };
@@ -23,7 +38,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ dispatch, categories}) => {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         const { description, dueDate, category } = taskDetails;
-        const dueDateObj = new Date(dueDate);
+        const dueDateObj = new Date(`${dueDate}T00:00:00`);
 
         if (validateTask(description, dueDateObj, category)) {
             const newTask: Task = {
@@ -36,57 +51,74 @@ const TaskForm: React.FC<TaskFormProps> = ({ dispatch, categories}) => {
             };
 
             dispatch({ type: 'ADD_TASK', payload: newTask });
-            setTaskDetails({ description: '', dueDate: '', category: '' }); // Reset category
+            setTaskDetails({ description: '', dueDate: '', category: '' }); // Reset form fields
         } else {
             alert('Please ensure all fields are filled out correctly.');
         }
     };
-
+    const FancyTypography = styled(Typography)(({ theme }) => ({
+        fontSize: '2.5rem', // Larger font size
+        fontWeight: 'bold', // Bold font weight for emphasis
+        color: theme.palette.secondary.main, // Use the secondary color from the theme
+        textShadow: '1px 1px 2px black, 0 0 25px blue, 0 0 5px darkblue', // Text shadow for a glowing effect
+        padding: theme.spacing(2), // Padding around the text
+        borderRadius: theme.shape.borderRadius, // Rounded corners
+        boxShadow: `0 3px 5px 2px rgba(255, 105, 135, .3)`, // Box shadow for depth
+        textAlign: 'center', // Center the text
+        transition: 'transform 0.5s ease-in-out', // Smooth transform on hover
+        '&:hover': {
+          transform: 'scale(1.1)' // Scale up effect on hover
+        }
+      }));
     return (
         <form onSubmit={handleSubmit} style={{ maxWidth: '400px', margin: '0 auto' }}>
-            <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px' }}>Task Description</label>
-                <input
-                    type="text"
-                    name="description"
-                    value={taskDetails.description}
-                    onChange={handleInputChange}
-                    placeholder="Enter task description"
-                    required
-                    style={{ width: '100%', padding: '8px'}}
-                />
-            </div>
+            <FancyTypography variant="h2" >
+                Add New Task
+            </FancyTypography>
+            
+            <TextField
+                label="Task Description"
+                name="description"
+                value={taskDetails.description}
+                onChange={handleInputChange}
+                placeholder="Enter task description"
+                required
+                fullWidth
+                margin="normal"
+            />
 
-            <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px' }}>Due Date</label>
-                <input
-                    type="date"
-                    name="dueDate"
-                    value={taskDetails.dueDate}
-                    onChange={handleInputChange}
-                    style={{ width: '100%', padding: '8px' }}
-                />
-            </div>
+            <TextField
+                label="Due Date"
+                type="date"
+                name="dueDate"
+                value={taskDetails.dueDate}
+                onChange={handleInputChange}
+                fullWidth
+                margin="normal"
+                InputLabelProps={{
+                    shrink: true,
+                }}
+            />
 
-            <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block' }}>Category</label>
-                <select
+            <FormControl fullWidth margin="normal" variant="outlined">
+                <InputLabel shrink={Boolean(taskDetails.category)}>Category</InputLabel>
+                <Select
                     name="category"
                     value={taskDetails.category}
-                    onChange={handleInputChange}
-                    style={{ width: '100%', padding: '8px' }}
+                    onChange={handleSelectChange}
                     required
+                    label="Category"
                 >
-                    <option value="" disabled>Select a category</option>
+                    <MenuItem value="" disabled>Select a category</MenuItem>
                     {categories.map(cat => (
-                        <option key={cat} value={cat}>{cat}</option>
+                        <MenuItem key={cat} value={cat}>{cat}</MenuItem>
                     ))}
-                </select>
-            </div>
+                </Select>
+            </FormControl>
 
-            <button type="submit" style={{ padding: '10px 15px'}}>
+            <Button type="submit" variant="contained" color="primary" style={{ marginTop: '15px' }}>
                 Add Task
-            </button>
+            </Button>
         </form>
     );
 };

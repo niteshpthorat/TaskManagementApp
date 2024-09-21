@@ -1,6 +1,21 @@
 import React, { useState } from 'react';
 import { Task } from '../models/Task';
 import SubtaskList from './SubtaskList';
+import {
+    Button,
+    TextField,
+    Typography,
+    List,
+    ListItem,
+    ListItemText,
+    ListItemSecondaryAction,
+    Divider,
+    Box,
+    Select,
+    MenuItem,
+    FormControl,
+    InputLabel,
+} from '@mui/material';
 
 enum Filter {
     All = 'all',
@@ -9,66 +24,19 @@ enum Filter {
 }
 
 interface TaskListProps {
-    tasks: Task[];               
-    dispatch: React.Dispatch<any>; 
+    tasks: Task[];
+    dispatch: React.Dispatch<any>;
     categories: string[];
 }
 
-const TaskList: React.FC<TaskListProps> = ({ tasks, dispatch ,categories}) => {
-    
+const TaskList: React.FC<TaskListProps> = ({ tasks, dispatch, categories }) => {
     const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
     const [updatedDescription, setUpdatedDescription] = useState('');
     const [updatedDueDate, setUpdatedDueDate] = useState('');
     const [updatedCategory, setUpdatedCategory] = useState('');
-    
+
     const [filter, setFilter] = useState<Filter>(Filter.All);
     const [categoryFilter, setCategoryFilter] = useState<string>('All');
-
-    const renderTask = (task: Task) => (
-        <li key={task.id}>
-            {editingTaskId === task.id ? (
-                <div>
-                    <input
-                        type="text"
-                        value={updatedDescription}
-                        onChange={(e) => setUpdatedDescription(e.target.value)}
-                    />
-                    <input
-                        type="date"
-                        value={updatedDueDate}
-                        onChange={(e) => setUpdatedDueDate(e.target.value)}
-                    />
-                    <select
-                        value={updatedCategory}
-                        onChange={(e) => setUpdatedCategory(e.target.value)}
-                    >
-                       {categories.map(category => (
-                        <option key={category} value={category}>{category}</option>
-                                    ))}
-                    </select>
-                    <button onClick={() => handleEditSave(task.id)}>Save</button>
-                    <button onClick={() => setEditingTaskId(null)}>Cancel</button>
-                </div>
-            ) : (
-                <div>
-                     <span>{task.description} : {task.isComplete ? 'Complete' : 'Incomplete'}</span>
-                     <span>- Due: {task.dueDate.toLocaleDateString()} - Category : {task.category}</span>
-                    <button onClick={() => handleEditStart(task)}>Edit</button>
-                    <button onClick={() => handleDelete(task.id)}>Delete</button>
-                    <button onClick={() => handleCompleteIncompleteTask(task.id)}>
-                        {task.isComplete ? 'Mark Incomplete' : 'Mark Complete'}
-                    </button>
-
-                    <SubtaskList
-                        task={task}
-                        onAddSubtask={handleAddSubtask}
-                        onDeleteSubtask={handleDeleteSubtask}
-                        onChangeSubtask={handleChangeSubtask}
-                    />
-                </div>
-            )}
-        </li>
-    );
 
     const handleDelete = (id: string) => {
         dispatch({ type: 'DELETE_TASK', payload: id });
@@ -89,8 +57,8 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, dispatch ,categories}) => {
                 description: updatedDescription,
                 dueDate: new Date(updatedDueDate),
                 category: updatedCategory || '',
-                subtasks: taskToUpdate.subtasks, // Retain existing subtasks
-                isComplete: taskToUpdate.isComplete, // Retain the current completion status
+                subtasks: taskToUpdate.subtasks,
+                isComplete: taskToUpdate.isComplete,
             };
             dispatch({ type: 'EDIT_TASK', payload: updatedTask });
             setEditingTaskId(null);
@@ -100,11 +68,10 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, dispatch ,categories}) => {
     const handleCompleteIncompleteTask = (taskId: string) => {
         const taskToUpdate = tasks.find(task => task.id === taskId);
         if (taskToUpdate) {
-            // Check if all subtasks are complete
             const allSubtasksComplete = taskToUpdate.subtasks.every(subtask => subtask.isComplete);
             const updatedTaskData = {
                 ...taskToUpdate,
-                isComplete: allSubtasksComplete, // Set task complete if all subtasks are complete
+                isComplete: allSubtasksComplete,
             };
             dispatch({ type: 'EDIT_TASK', payload: updatedTaskData });
         }
@@ -149,7 +116,7 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, dispatch ,categories}) => {
     const handleChangeSubtask = (taskId: string, subtaskId: string) => {
         const taskToUpdate = tasks.find(task => task.id === taskId);
         if (taskToUpdate) {
-            const updatedSubtasks = taskToUpdate.subtasks.map(subtask => 
+            const updatedSubtasks = taskToUpdate.subtasks.map(subtask =>
                 subtask.id === subtaskId ? { ...subtask, isComplete: !subtask.isComplete } : subtask
             );
             const updatedTaskData = {
@@ -160,33 +127,139 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, dispatch ,categories}) => {
         }
     };
 
-    return (
+    const isOverdue = (dueDate : Date) => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return dueDate < today;
+      };
+      
+      const isDueToday = (dueDate : Date) => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return dueDate.toDateString() === today.toDateString();
+      };
 
-        <div>
-            <h2>Task List</h2>
-            <div>
-                <label>Filter tasks by Status: </label>
-                <select value={filter} onChange={(e) => setFilter(e.target.value as Filter)}>
-                    <option value={Filter.All}>All</option>
-                    <option value={Filter.Complete}>Complete</option>
-                    <option value={Filter.Incomplete}>Incomplete</option>
-                </select>
-            </div>
-            <div>
-                <label>Filter tasks by category: </label>
-                <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
-                    <option value="All">All</option>
-                    {categories.map(category => (
-                        <option key={category} value={category}>{category}</option>
-                    ))}
-                </select>
-            </div>
-            {filteredTasks.length === 0 ? (
-                <li>No tasks available. Please add a task.</li>
+    const checkDate = (task: Task) => {
+        const dueDate = new Date(task.dueDate);
+        const overdue = isOverdue(dueDate);
+        const dueToday = isDueToday(dueDate);
+      
+        const taskStyle = {
+          color: overdue ? 'red' : dueToday ? 'orange' : 'black', // Overdue tasks are red, due today are orange
+          fontWeight: overdue || dueToday ? 'bold' : 'normal',
+        };
+    }
+
+    const renderTask = (task: Task) => (
+        <Box key={task.id} sx={{ padding: '10px', borderRadius: '5px', backgroundColor: '#f5f5f5', marginBottom: '10px' }}>
+            {editingTaskId === task.id ? (
+                <Box display="flex" flexDirection="column" gap={2}>
+                    <TextField
+                        label="Description"
+                        value={updatedDescription}
+                        onChange={(e) => setUpdatedDescription(e.target.value)}
+                    />
+                    <TextField
+                        label="Due Date"
+                        type="date"
+                        value={updatedDueDate}
+                        onChange={(e) => setUpdatedDueDate(e.target.value)}
+                        InputLabelProps={{ shrink: true }}
+                    />
+                    <FormControl>
+                        <InputLabel>Category</InputLabel>
+                        <Select
+                            value={updatedCategory}
+                            onChange={(e) => setUpdatedCategory(e.target.value)}
+                        >
+                            {categories.map(category => (
+                                <MenuItem key={category} value={category}>{category}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                    <Box display="flex" gap={1}>
+                        <Button variant="contained" color="primary" onClick={() => handleEditSave(task.id)}>Save</Button>
+                        <Button variant="outlined" onClick={() => setEditingTaskId(null)}>Cancel</Button>
+                    </Box>
+                </Box>
             ) : (
-                <ul>{filteredTasks.map(renderTask)}</ul>
+                <Box display="flex" flexDirection="column">
+                    <ListItem>
+                        <ListItemText
+                            primary={
+                                <Typography variant="h6" color={task.isComplete ? 'success.main' : 'error.main'}>
+                                    {task.description}
+                                </Typography>
+                            }
+                            secondary={
+                                <Typography variant="body2"
+                                    sx={{ ...checkDate, marginBottom: '10px'}}>
+                                    Due: {task.dueDate.toLocaleDateString()} | Category: {task.category}
+                                </Typography>
+                            }
+                        />
+                        <ListItemSecondaryAction>
+                            <Button variant="outlined" onClick={() => handleEditStart(task)}>Edit</Button>
+                            <Button variant="outlined" color="secondary" onClick={() => handleDelete(task.id)} style={{ marginLeft: '10px' }}>Delete</Button>
+                            <Button variant="contained" color={task.isComplete ? 'error' : 'success'} onClick={() => handleCompleteIncompleteTask(task.id)} style={{ marginLeft: '10px' }}>
+                                {task.isComplete ? 'Mark Incomplete' : 'Mark Complete'}
+                            </Button>
+                        </ListItemSecondaryAction>
+                    </ListItem>
+                    <SubtaskList
+                        task={task}
+                        onAddSubtask={handleAddSubtask}
+                        onDeleteSubtask={handleDeleteSubtask}
+                        onChangeSubtask={handleChangeSubtask}
+                    />
+                    <Divider sx={{ margin: '10px 0' }} />
+                </Box>
             )}
-        </div>
+        </Box>
+    );
+
+    return (
+        <Box sx={{ padding: '20px' }}>
+            <Typography variant="h4" gutterBottom>Task List</Typography>
+            <Box display="flex" gap={2} marginBottom={2}>
+                <FormControl variant="outlined" fullWidth margin="normal">
+                    <InputLabel htmlFor="status-filter">Status Filter</InputLabel>
+                    <Select
+                        labelId="status-filter-label"
+                        id="status-filter"
+                        value={filter}
+                        onChange={(e) => setFilter(e.target.value as Filter)}
+                        label="Status Filter"  // This prop enhances accessibility and style
+                    >
+                        <MenuItem value={Filter.All}>All</MenuItem>
+                        <MenuItem value={Filter.Complete}>Complete</MenuItem>
+                        <MenuItem value={Filter.Incomplete}>Incomplete</MenuItem>
+                    </Select>
+                </FormControl>
+                <FormControl variant="outlined" fullWidth margin="normal">
+                    <InputLabel id="category-filter-label">Category Filter</InputLabel>
+                    <Select
+                        labelId="category-filter-label"
+                        value={categoryFilter}
+                        onChange={(e) => setCategoryFilter(e.target.value)}
+                        label="Category Filter"  // Ensures the floating label works correctly
+                    >
+                        <MenuItem value="All">All</MenuItem>
+                        {categories.map((category, index) => (
+                            <MenuItem key={index} value={category}>{category}</MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+            </Box>
+            {tasks.length === 0 ? (
+                <Typography>No tasks available. Please add a task.</Typography>
+            ) : (
+                <List sx={{ marginTop: 2 }}>
+                    {filteredTasks.map(renderTask)}
+                </List>
+            )}
+        </Box>
     );
 };
+
 export default TaskList;

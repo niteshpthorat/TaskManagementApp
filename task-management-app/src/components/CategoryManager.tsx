@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Button, TextField, List, ListItem, ListItemText, ListItemSecondaryAction, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 
 interface CategoryManagerProps {
     categories: string[];
@@ -11,6 +12,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, onAddCate
     const [newCategory, setNewCategory] = useState('');
     const [editingCategory, setEditingCategory] = useState<string | null>(null);
     const [updatedCategory, setUpdatedCategory] = useState('');
+    const [dialogOpen, setDialogOpen] = useState(false);
 
     const handleAddCategory = () => {
         if (newCategory.trim()) {
@@ -32,40 +34,85 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, onAddCate
         }
     };
 
-    return (
-        <div>
-            <h4>Manage Categories</h4>
-            <input
-                type="text"
-                placeholder="New category"
-                value={newCategory}
-                onChange={(e) => setNewCategory(e.target.value)}
-            />
-            <button onClick={handleAddCategory}>Add Category</button>
+    const handleDialogOpen = () => {
+        setDialogOpen(true);
+    };
 
-            <ul>
-                {categories.map((category) => (
-                    <li key={category}>
-                        {editingCategory === category ? (
-                            <div>
-                                <input
-                                    type="text"
-                                    value={updatedCategory}
-                                    onChange={(e) => setUpdatedCategory(e.target.value)}
-                                />
-                                <button onClick={handleEditSave}>Save</button>
-                                <button onClick={() => setEditingCategory(null)}>Cancel</button>
-                            </div>
-                        ) : (
-                            <div>
-                                <span>{category}</span>
-                                <button onClick={() => handleEditStart(category)}>Edit</button>
-                                <button onClick={() => onDeleteCategory(category)}>Delete</button>
-                            </div>
-                        )}
-                    </li>
-                ))}
-            </ul>
+    const handleDialogClose = () => {
+        setDialogOpen(false);
+    };
+
+    return (
+        <div style={{ padding: '10px', border: '1px solid #ccc', borderRadius: '8px', width: '300px', margin: 'auto' }}>
+            <Button
+                variant="contained"
+                color="primary"
+                onClick={handleDialogOpen}
+                style={{ width: '100%' }}
+            >
+                Manage Categories
+            </Button>
+
+            <Dialog open={dialogOpen} onClose={handleDialogClose}>
+                <DialogTitle>Manage Categories</DialogTitle>
+                <DialogContent>
+                    <div style={{ display: 'flex', marginBottom: '10px' }}>
+                        <TextField
+                            variant="outlined"
+                            placeholder="New category"
+                            value={newCategory}
+                            onChange={(e) => setNewCategory(e.target.value)}
+                            style={{ flex: 1, marginRight: '10px' }}
+                        />
+                        <Button variant="contained" color="primary" onClick={handleAddCategory}>
+                            Add
+                        </Button>
+                    </div>
+                    <List>
+                        {categories.map((category) => (
+                            <ListItem key={category} divider>
+                                {editingCategory === category ? (
+                                    <div style={{ display: 'flex', width: '100%' }}>
+                                        <TextField
+                                            variant="outlined"
+                                            value={updatedCategory}
+                                            onChange={(e) => setUpdatedCategory(e.target.value)}
+                                            style={{ flex: 1, marginRight: '10px' }}
+                                        />
+                                        <ListItemSecondaryAction>
+                                            <Button variant="contained" color="primary" onClick={handleEditSave}>
+                                                Save
+                                            </Button>
+                                            <Button variant="outlined" color="secondary" onClick={() => setEditingCategory(null)} style={{ marginLeft: '10px' }}>
+                                                Cancel
+                                            </Button>
+                                        </ListItemSecondaryAction>
+                                    </div>
+                                ) : (
+                                    <ListItemText
+                                        primary={category}
+                                        secondary={
+                                            <div>
+                                                <Button variant="outlined" color="primary" onClick={() => handleEditStart(category)} style={{ marginRight: '10px' }}>
+                                                    Edit
+                                                </Button>
+                                                <Button variant="outlined" color="secondary" onClick={() => onDeleteCategory(category)}>
+                                                    Delete
+                                                </Button>
+                                            </div>
+                                        }
+                                    />
+                                )}
+                            </ListItem>
+                        ))}
+                    </List>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleDialogClose} color="primary">
+                        Close
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </div>
     );
 };
